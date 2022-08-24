@@ -1,0 +1,35 @@
+use sysinfo::{NetworkExt, NetworksExt, ProcessExt, System, SystemExt};
+use std::collections::HashMap;
+use std::thread;
+use std::time::Duration;
+use std::process;
+
+fn main(){
+    let mut sys = System::new_all();
+    let memory = thread::spawn(move || {
+        while true{
+            println!("{:?}", getRamInfo(&mut sys));
+        }
+    });
+    let mut i = 0;
+    loop{
+        i += 1;
+        println!("{}",i);
+        thread::sleep(Duration::from_secs(1));
+        if i == 62{
+            process::exit(0x0100);
+        }
+    }
+    memory.join().unwrap();
+}
+
+#[inline(always)]
+fn getRamInfo(sys: &mut System) -> HashMap<String, u64>{
+    sys.refresh_all();
+    let mut memStuff = HashMap::new();
+    memStuff.insert(String::from("umem"), sys.used_memory()/1024);
+    memStuff.insert(String::from("tmem"), sys.total_memory()/1024);
+    memStuff.insert(String::from("uswap"), sys.used_swap()/1024);
+    memStuff.insert(String::from("tswap"), sys.total_swap()/1024);
+    return memStuff;
+}
