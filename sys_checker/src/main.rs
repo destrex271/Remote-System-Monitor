@@ -1,6 +1,7 @@
 use sysinfo::{System, SystemExt, Component, ProcessExt, DiskUsage, Pid};
 use std::collections::HashMap;
 
+#[derive(Debug)]
 struct Proc{
     pid: Pid,
     name: String,
@@ -11,8 +12,9 @@ fn main(){
     let mut sys = System::new_all();
     let mut i = 0;
     loop{
-        // println!("{:?}", getTempInfo(&mut sys));
-        getProcess(&mut sys);
+        println!("{:?}", get_temp_info(&mut sys));
+        println!("{:?}",get_process(&mut sys)); 
+        println!("{:?}", get_ram_info(&mut sys));
         i += 1;
         if i == 2{
             println!("OK!");
@@ -21,7 +23,7 @@ fn main(){
     }
 }
 
-fn getRamInfo(sys: &mut System) -> HashMap<&str, f32>{
+fn get_ram_info(sys: &mut System) -> HashMap<&str, f32>{
     sys.refresh_all();
     let mut ramInfo = HashMap::new();
     ramInfo.insert("used_ram", sys.used_memory() as f32/(1024.0*1024.0));
@@ -31,7 +33,7 @@ fn getRamInfo(sys: &mut System) -> HashMap<&str, f32>{
     ramInfo
 }
 
-fn getTempInfo(sys: &mut System) -> Vec<&sysinfo::Component>{
+fn get_temp_info(sys: &mut System) -> Vec<&sysinfo::Component>{
     sys.refresh_all();
     let mut tempInfo = Vec::new();
     for component in sys.components(){
@@ -40,18 +42,18 @@ fn getTempInfo(sys: &mut System) -> Vec<&sysinfo::Component>{
     tempInfo
 }
 
-fn getProcess(sys: &mut System){
+fn get_process(sys: &mut System) -> HashMap<&Pid, Vec<Proc>>{
     sys.refresh_all();
-    //let mut processes = HashMap::new();
+    let mut processes = HashMap::new();
     for (pid, process) in sys.processes(){
-        /*let mut vc = Vec::new();
-        vc.push(process.name());
-        vc.push(process.disk_usage());
-        processes.insert(pid, vc);*/
+        let mut vc = Vec::new();
+        let p : Proc = Proc{
+            pid: process.pid(),
+            name: String::from(process.name()),
+            disk: process.disk_usage()
+        };
+        vc.push(p);
+        processes.insert(pid, vc);
     }
-    
-    /*for x in processes.iter(){
-        println!("{:?}", x);
-    }*/
-
+    processes
 }
