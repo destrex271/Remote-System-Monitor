@@ -1,5 +1,6 @@
 use sysinfo::{System, SystemExt, Component, ProcessExt, DiskUsage, Pid};
 use std::collections::HashMap;
+use std::thread;
 
 #[derive(Debug)]
 struct Proc{
@@ -9,18 +10,37 @@ struct Proc{
 }
 
 fn main(){
-    let mut sys = System::new_all();
+    // let mut sys = System::new_all();
     let mut i = 0;
-    loop{
-        println!("{:?}", get_temp_info(&mut sys));
-        println!("{:?}",get_process(&mut sys)); 
-        println!("{:?}", get_ram_info(&mut sys));
-        i += 1;
-        if i == 2{
-            println!("OK!");
-            break;
+    let ram_handler = thread::spawn(move || {
+        for i in 1..2{
+            println!("\n");
+            let mut sys = System::new_all();
+            println!("{:?}", get_ram_info(&mut sys));
         }
-    }
+    });
+
+    let temp_handler = thread::spawn(move || {
+        for i in 1..2{
+            println!("\n");
+            let mut sys = System::new_all();
+            println!("Temp");
+            println!("{:?}", get_temp_info(&mut sys));
+        }
+    });
+
+    let proc_handler = thread::spawn(move || {
+        for i in 1..2{
+            println!("\n");
+            let mut sys = System::new_all();
+            println!("Process!");
+            println!("{:?}", get_process(&mut sys));
+        }
+    });
+
+    ram_handler.join().unwrap();
+    temp_handler.join().unwrap();
+    proc_handler.join().unwrap();
 }
 
 fn get_ram_info(sys: &mut System) -> HashMap<&str, f32>{
